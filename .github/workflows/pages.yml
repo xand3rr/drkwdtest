@@ -1,26 +1,54 @@
-name: Build and test minimal CMS base
+name: Test and publish Decap baseline
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
+
 concurrency:
-  group: minimal-cms-base
-  cancel-in-progress: true
+  group: drkwdtest-pages
+  cancel-in-progress: false
+
 jobs:
   validate:
+    if: github.repository == 'xand3rr/drkwdtest' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: '22'
-      - name: Test the plain page and OAuth protocol
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Test page and GitHub App login protocol
         run: npm test
-      - name: Build without npm dependencies
+      - name: Build
         run: npm run build
-      - uses: actions/upload-artifact@v4
+      - name: Upload website
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          name: minimal-cms-base
           path: _site
+          include-hidden-files: true
+
+  deploy:
+    needs: validate
+    if: github.repository == 'xand3rr/drkwdtest' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish test website
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

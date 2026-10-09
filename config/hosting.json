@@ -1,7 +1,7 @@
 {
   "repository": "xand3rr/drkwdtest",
   "branch": "main",
-  "authUrl": "",
+  "authUrl": "https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev",
   "basePath": null,
   "siteUrl": "https://drkwdtest.xanderfaase.nl/"
 }

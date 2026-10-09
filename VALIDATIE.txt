@@ -1,16 +1,20 @@
 Kwadendamme — minimale Decap-validatiebasis, 9 oktober 2026
 
 HUIDIGE FASE
-- Domeininstelling uitgesteld. GitHub Actions test/bouwt alleen en bewaart een
-  downloadbaar artifact. Geen publicatiejob en geen Pages-schrijf/deployrechten.
-- Alleen de nieuwe testrepository xand3rr/drkwdtest is ingesteld. Het toekomstige
-  websiteadres is drkwdtest.xanderfaase.nl; loginserver nog niet ingesteld.
+- Het testdomein is door de gebruiker gekoppeld met DNS-controle en HTTPS.
+  GitHub Actions test/bouwt en publiceert na succes uitsluitend de nieuwe
+  testrepository. Alleen de aparte publicatiejob heeft Pages/OIDC-schrijfrechten.
+- Alleen de nieuwe testrepository xand3rr/drkwdtest is ingesteld. Websiteadres
+  en loginadres zijn ingevuld. De gebruiker bevestigt dat de Worker is ingesteld.
+  De echte CMS-login/opslaan/commit/publicatie moeten nog worden getest.
 
 UITGEVOERD
 - Eén tekstpagina gebouwd met Node en eigen escaping, zonder externe packages.
 - Vier basistests: content-rendering en veilige HTML-weergave, GitHub Pages-paden,
   minimale JSON/CMS-configuratie en weigering van ongeldige content/configuratie.
-- Zes bestaande OAuth-tests met gesimuleerde GitHub-antwoorden.
+- Negen GitHub App-login-tests met gesimuleerde GitHub-antwoorden: state/cookie/
+  PKCE, vaste adressen, Decap-handshake, tijdelijk App-token, juiste installatie/
+  repository, weigeren van extra rechten en installatie-paginering.
 - Lokale HTTP-controle van homepage, admin, script en gegenereerde configuratie.
 
 NIET ALS GESLAAGD GEMARKEERD

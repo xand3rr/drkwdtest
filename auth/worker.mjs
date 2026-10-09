@@ -1,4 +1,4 @@
-// Decap GitHub OAuth bridge for one website and one repository.
+// Decap login using an expiring GitHub App user token.
 // Deploy this component separately from the GitHub Pages website.
 const COOKIE = '__Host-kwadendamme-oauth';
 const MAX_AGE = 600;
@@ -56,9 +56,30 @@ function config(env) {
   const siteOrigin = configuredOrigin(env.SITE_ORIGIN);
   const workerOrigin = configuredOrigin(env.WORKER_ORIGIN);
   if (!/^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9_.-]+$/.test(env.GITHUB_REPO || '')) throw new Error('Invalid repository');
+  if (!/^[1-9][0-9]{0,15}$/.test(env.GITHUB_APP_ID || '')) throw new Error('Invalid GitHub App ID');
   if (!env.GITHUB_CLIENT_ID || !env.GITHUB_CLIENT_SECRET || (env.SESSION_SECRET || '').length < 32) throw new Error('Missing secrets');
-  if (!['false', 'true'].includes(env.PRIVATE_REPO || 'false')) throw new Error('Invalid scope');
-  return { siteOrigin, workerOrigin, repo: env.GITHUB_REPO, scope: env.PRIVATE_REPO === 'true' ? 'repo' : 'public_repo' };
+  return { siteOrigin, workerOrigin, repo: env.GITHUB_REPO, appId: env.GITHUB_APP_ID };
+}
+
+async function githubJson(path, token, fetcher) {
+  const response = await fetcher(`https://api.github.com${path}`, {
+    redirect: 'error',
+    headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}`, 'User-Agent': 'kwadendamme-decap-login', 'X-GitHub-Api-Version': '2026-03-10' },
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error('GitHub API request failed');
+  return response.json();
+}
+
+async function installationFor(cfg, token, fetcher) {
+  for (let page = 1; page <= 10; page++) {
+    const data = await githubJson(`/user/installations?per_page=100&page=${page}`, token, fetcher);
+    if (!Array.isArray(data.installations) || !Number.isInteger(data.total_count)) throw new Error('Invalid installations');
+    const installation = data.installations.find(item => String(item.app_id) === cfg.appId && item.account?.login?.toLowerCase() === cfg.repo.split('/')[0].toLowerCase());
+    if (installation) return installation;
+    if (page * 100 >= data.total_count) return null;
+  }
+  return null;
 }
 
 function headers(extra = {}) {
@@ -114,7 +135,7 @@ function callbackPage(origin, token, error) {
   }) });
 }
 
-export async function handle(request, env, dependencies = {}) {
+async function handle(request, env, dependencies = {}) {
   const fetcher = dependencies.fetch || fetch;
   const now = Math.floor((dependencies.now?.() ?? Date.now()) / 1000);
   let cfg;
@@ -133,7 +154,7 @@ export async function handle(request, env, dependencies = {}) {
     const challenge = encode(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(verifier))));
     const session = await signSession({ state, verifier, expires: now + MAX_AGE }, env.SESSION_SECRET);
     const authorization = new URL('https://github.com/login/oauth/authorize');
-    authorization.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: `${cfg.workerOrigin}/callback`, scope: cfg.scope, state, code_challenge: challenge, code_challenge_method: 'S256' }).toString();
+    authorization.search = new URLSearchParams({ client_id: env.GITHUB_CLIENT_ID, redirect_uri: `${cfg.workerOrigin}/callback`, state, code_challenge: challenge, code_challenge_method: 'S256' }).toString();
     return new Response(null, { status: 302, headers: headers({ Location: authorization.href, 'Set-Cookie': cookie(session) }) });
   }
   if (url.pathname !== '/callback') return text('Pagina niet gevonden.', 404);
@@ -151,14 +172,16 @@ export async function handle(request, env, dependencies = {}) {
     });
     if (!exchange.ok) throw new Error('Exchange failed');
     const data = await exchange.json();
-    if (!data || typeof data.access_token !== 'string' || !/^[A-Za-z0-9_]{20,512}$/.test(data.access_token) || data.error) throw new Error('No token');
-    const repository = await fetcher(`https://api.github.com/repos/${cfg.repo}`, {
-      redirect: 'error', headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${data.access_token}`, 'User-Agent': 'kwadendamme-decap-login', 'X-GitHub-Api-Version': '2022-11-28' },
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!repository.ok) return callbackPage(cfg.siteOrigin, null, 'Je GitHub-account heeft geen toegang tot de ingestelde website-repository.');
-    const repo = await repository.json();
-    if (repo.full_name?.toLowerCase() !== cfg.repo.toLowerCase() || repo.permissions?.push !== true) return callbackPage(cfg.siteOrigin, null, 'Je hebt schrijfrecht op de website-repository nodig om inhoud te bewerken.');
+    if (!data || typeof data.access_token !== 'string' || !/^ghu_[A-Za-z0-9_]{16,508}$/.test(data.access_token) || data.error) throw new Error('No GitHub App token');
+    if (!Number.isInteger(data.expires_in) || data.expires_in <= 0 || data.expires_in > 28800) return callbackPage(cfg.siteOrigin, null, 'Zet in de GitHub App Expire user authorization tokens aan en meld opnieuw aan.');
+    const installation = await installationFor(cfg, data.access_token, fetcher);
+    if (!installation) return callbackPage(cfg.siteOrigin, null, 'Installeer de ingestelde GitHub App op de testrepository en meld opnieuw aan.');
+    if (!Number.isSafeInteger(installation.id) || installation.id <= 0) throw new Error('Invalid installation');
+    if (installation.repository_selection !== 'selected' || installation.permissions?.contents !== 'write') return callbackPage(cfg.siteOrigin, null, 'Kies voor de GitHub App uitsluitend de testrepository en geef Contents: Read and write.');
+    const repositories = await githubJson(`/user/installations/${installation.id}/repositories?per_page=100`, data.access_token, fetcher);
+    const repo = repositories.repositories?.[0];
+    if (repositories.total_count !== 1 || !Array.isArray(repositories.repositories) || repositories.repositories.length !== 1 || repo.full_name?.toLowerCase() !== cfg.repo.toLowerCase()) return callbackPage(cfg.siteOrigin, null, 'De GitHub App moet uitsluitend toegang hebben tot de ingestelde testrepository. Pas de installatie aan en meld opnieuw aan.');
+    if (repo.permissions?.push !== true) return callbackPage(cfg.siteOrigin, null, 'Je hebt schrijfrecht op de website-repository nodig om inhoud te bewerken.');
     return callbackPage(cfg.siteOrigin, data.access_token, null);
   } catch {
     return callbackPage(cfg.siteOrigin, null, 'GitHub reageerde niet goed. Sluit dit venster en probeer opnieuw.');

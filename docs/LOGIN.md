@@ -1,62 +1,76 @@
-# De echte GitHub-login instellen
+# De GitHub App-login instellen
 
-De standaard GitHub-backend van Decap heeft een OAuth-loginserver nodig.
-Het pakket bevat daarvoor de bestaande, afzonderlijke `auth/worker.mjs`.
-De protocoltests zijn behouden. Dit is maatwerk voor de login, geen officiële
-door Decap geleverde server. Een echte koppeling moet nog worden getest.
+Deze test gebruikt GitHub App `kwadendamme-decap-test-xand3rr` (App ID 5252240).
+De app moet uitsluitend geïnstalleerd zijn op `xand3rr/drkwdtest`, met Contents:
+Read & write, Metadata: Read-only en verlopende gebruikerstokens ingeschakeld.
+Webhook Active en wildcard matching staan uit. Redirect URI (in sommige
+documentatie Callback URL genoemd):
 
-## Benodigde adressen
+`https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev/callback`
 
-Voor een testrepository `jouwnaam/kwadendamme-basis`:
+De aangemaakte privésleutel blijft veilig op de eigen computer. Deze worker
+gebruikt de App-client-ID en client secret, niet de privésleutel of het App ID
+als vervanging voor de client-ID. Dit is eigen logincode, geen door Decap
+geleverde server. De echte browserroute moet nog worden getest.
 
-- Website: `https://jouwnaam.github.io/kwadendamme-basis/`.
-- Website-origin: `https://jouwnaam.github.io`.
-- Loginworker: het werkelijk uitgegeven HTTPS-adres van jouw Cloudflare Worker.
-- OAuth-callback: dat workeradres plus `/callback`.
+## Cloudflare-code
 
-## Instellen zonder lokale CMS-packages
+Open Workers & Pages → kwadendamme-decap-login → Edit code. Vervang de hele
+Hello World-code door `auth/worker.mjs` en kies Deploy. De module heeft geen
+imports of externe packages. Zolang onderstaande instellingen ontbreken,
+meldt de hoofdpagina dat de loginserver nog niet volledig ingesteld is (503).
 
-1. Maak een aparte Cloudflare Worker. Gebruik de modulecode uit
-   `auth/worker.mjs`. Deze code importeert geen andere bestanden/packages en
-   kan via de editor in het Cloudflare-dashboard worden ingesteld.
-2. Stel gewone variabelen `SITE_ORIGIN`, `WORKER_ORIGIN`, `GITHUB_REPO` en
-   `PRIVATE_REPO` in. De exacte namen en voorbeelden staan in `auth/wrangler.toml`.
-   Gebruik voor `PRIVATE_REPO` de tekst `false` en een openbare testrepository.
-3. Maak in GitHub onder **Settings → Developer settings → OAuth Apps** een
-   OAuth-app. De homepage is het testwebsiteadres; de callback is het exacte
-   workeradres met `/callback`.
-4. Zet `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` en `SESSION_SECRET` als secrets
-   op de Worker. Genereer SESSION_SECRET lokaal met:
+## Gewone variabelen
+
+Open de Worker → Settings → Variables and Secrets → Add en kies type Text.
+
+| Naam | Waarde |
+| --- | --- |
+| SITE_ORIGIN | https://drkwdtest.xanderfaase.nl |
+| WORKER_ORIGIN | https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev |
+| GITHUB_REPO | xand3rr/drkwdtest |
+| GITHUB_APP_ID | 5252240 |
+
+## Secrets
+
+Ga in GitHub naar Settings → Developer settings → GitHub Apps → deze app.
+Kopieer de Client ID. Kies Generate a new client secret en kopieer die waarde
+rechtstreeks naar Cloudflare. Kies voor deze drie variabelen het type Secret:
+
+- GITHUB_CLIENT_ID: de Client ID van deze GitHub App, niet het App ID.
+- GITHUB_CLIENT_SECRET: de zojuist gegenereerde client secret.
+- SESSION_SECRET: lokaal gegenereerde willekeurige sleutel. Met Node:
 
 ```sh
 node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 ```
 
-5. Publiceer de worker. Op zijn hoofdadres moet hij melden dat hij is ingesteld.
-   Bewaar de client secret en sessiesleutel uitsluitend in de worker-secrets.
-6. Configureer de website zoals in `LEESMIJ.md`. Bij een eigen domein stel je
-   ook `--site-url` in en verander je `SITE_ORIGIN` naar precies dat HTTPS-origin.
+Bewaar deze waarden uitsluitend in Cloudflare-secrets en een veilige eigen
+bewaarplek, nooit in GitHub, screenshots of de chat. Klik Deploy nadat de
+variabelen en secrets ingevuld zijn. De hoofdpagina hoort nu te melden:
 
-De Cloudflare-editor/menu's kunnen veranderen; volg voor de installatie de
-actuele officiële instructies. De worker gebruikt Web Crypto en module exports.
-Secrets hoeven nergens aan ChatGPT te worden doorgegeven.
+`Dorpsraad Kwadendamme: loginserver is ingesteld. Start de aanmelding via de beheerpagina van de website.`
 
-## Rechten en echte controle
+Dit bewijst alleen dat de configuratie aanwezig is, niet dat de echte login
+al werkt. Open /auth of /callback niet handmatig als login-test: de aanmelding
+moet vanuit /admin/ komen voor de veilige popup-handshake.
 
-Beheerders hebben schrijfrecht op de testrepository nodig. De worker controleert
-dat recht vóór het teruggeven van een token aan de vaste website-origin. De
-GitHub OAuth-scope `public_repo` is breder dan één repository; beperk de rechten
-van het gebruikte testaccount.
+## Wat de code controleert
 
-De CMS-browsercode heeft met die token toegang tot GitHub. Daarom moet ook de
-Decap-browsercode worden beoordeeld; alleen de loginworker testen is onvoldoende.
+De login vraagt geen brede OAuth-scopes. De getekende, kortlevende HttpOnly-
+cookie bindt de GitHub state en PKCE-verifier aan de callback. Na tokenuitgifte
+controleert de worker het App ID, de installatie-eigenaar, Contents-schrijfrecht,
+uitsluitend de gekozen repository en het schrijfrecht van de aangemelde gebruiker.
+Een installatie op alle of meer dan één repository wordt geweigerd.
 
-De zes meegeleverde worker-tests gebruiken gesimuleerde GitHub-responses. De
-echte test staat in `LEESMIJ.md`: inloggen, tekst opslaan, commit controleren,
-nieuwe Pages-build afwachten en na herladen/nieuwe login dezelfde tekst zien.
+Alleen een GitHub App-gebruikerstoken met maximaal acht uur geldigheid wordt
+aan de vaste website-origin gegeven. Refresh tokens worden niet opgeslagen
+of doorgegeven. Na verlopen van de token meld je opnieuw aan. De negen
+meegeleverde tests simuleren GitHub; echte login/opslaan/commit/publiceren
+zijn nog niet als geslaagd aangemerkt. Zie LEESMIJ.md en BEVEILIGING.md.
 
 Bronnen:
-- https://decapcms.org/docs/github-backend/
-- https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
-- https://developers.cloudflare.com/workers/get-started/dashboard/
+- https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app
+- https://docs.github.com/en/rest/apps/installations
 - https://developers.cloudflare.com/workers/configuration/secrets/
+- https://decapcms.org/docs/github-backend/

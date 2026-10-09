@@ -4,11 +4,11 @@ compatibility_date = "2026-10-01"
 workers_dev = true
 
 [vars]
-# Vul deze drie waarden zelf in. Gebruik alleen de oorsprong, zonder pad.
-SITE_ORIGIN = "https://JOUW-GITHUB-NAAM.github.io"
-WORKER_ORIGIN = "https://kwadendamme-decap-login.JOUW-ACCOUNT.workers.dev"
-GITHUB_REPO = "JOUW-GITHUB-NAAM/dorpsraad-kwadendamme"
-PRIVATE_REPO = "false"
+# Alleen de aparte testwebsite en GitHub App.
+SITE_ORIGIN = "https://drkwdtest.xanderfaase.nl"
+WORKER_ORIGIN = "https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev"
+GITHUB_REPO = "xand3rr/drkwdtest"
+GITHUB_APP_ID = "5252240"
 
 # Stel GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET en SESSION_SECRET als
 # Cloudflare secrets in. Voeg ze nooit aan dit bestand of GitHub toe.

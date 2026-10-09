@@ -1,102 +1,84 @@
 # Kwadendamme — minimale Decap-validatiebasis
 
-Deze afzonderlijke basis bevat één tekstpagina en Decap 3.16.3 via de officiële
-CDN-installatiemethode. Er is nog geen dorpsontwerp toegevoegd. De bestaande
-websitebestanden zijn behouden in het eerdere pakket.
+Eén gewone tekstpagina, Decap 3.16.3 en een aparte GitHub App-loginworker.
+Nog geen dorpsontwerp. Dit is een testopzet; de volledige CMS-browsercode en
+echte login/opslaan/publiceren zijn nog niet als veilig en werkend vrijgegeven.
+Zie BEVEILIGING.md en VALIDATIE.txt.
 
-**Status: voorbereid voor validatie, niet als veilig/werkend CMS vrijgegeven.**
-De bezoekerspagina en OAuth-protocoltests kunnen lokaal worden gecontroleerd.
-Een echte GitHub-login, CMS-opslag en de beveiligingsbeoordeling van de
-Decap-browsercode zijn nog niet geslaagd. Zie `BEVEILIGING.md`.
+## De afgesproken testomgeving
 
-## Direct bekijken
+- Repository: `xand3rr/drkwdtest`, branch `main`.
+- Website: `https://drkwdtest.xanderfaase.nl/`.
+- Beheer: `https://drkwdtest.xanderfaase.nl/admin/`.
+- Loginworker: `https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev`.
+- GitHub App ID: `5252240`, uitsluitend geïnstalleerd op `drkwdtest`.
 
-Pak deze ZIP uit in een NIEUWE map, naast je bestaande project. Installeer Node.js
-22 of nieuwer. Open een terminal in `kwadendamme-basis`:
+De gebruiker heeft DNS/HTTPS en de afzonderlijke Worker ingesteld. De
+hoofdresponse van de Worker bevestigt alleen aanwezige configuratie. De
+volledige CMS-login moet nog vanuit de beheerpagina worden getest.
+
+## Publiceren op uitsluitend de testrepository
+
+De workflow `.github/workflows/pages.yml` heet **Test and publish Decap baseline**.
+Hij start bij een commit op `main` en draait uitsluitend in `xand3rr/drkwdtest`.
+Eerst `npm test`, daarna `npm run build`, upload van alleen `_site` en een
+afzonderlijke Pages-publicatiejob. Alleen die laatste job krijgt Pages- en
+OIDC-schrijfpermissies; Git-inhoud wordt door deze workflow niet teruggeschreven.
+Acties zijn vastgezet op geverifieerde releasecommits.
+
+1. Upload de INHOUD van de projectmap naar de root van `xand3rr/drkwdtest`,
+   inclusief `.github/workflows/pages.yml`. Upload `_site` niet.
+2. Bij de aparte testrepo: Settings → Pages → Source = GitHub Actions. Het
+   aangepaste domein en HTTPS zijn daar al ingesteld.
+3. Commit naar `main`. Open Actions → Test and publish Decap baseline.
+4. Zowel validate als deploy moeten slagen. Open daarna de beheer-URL.
+
+Het kleine updatepakket bevat alleen gewijzigde configuratie, loginbron/tests,
+workflow en documentatie. Het bevat geen `content/page.json` en overschrijft
+daardoor geen later ingevoerde pagina-inhoud. In deze bronnen staan geen
+client secrets, sessiesleutels of privésleutels. Die horen in Cloudflare.
+De bestaande website-repository `xand3rr.github.io` is buiten deze opzet.
+
+## De echte CMS-test
+
+1. Open de beheerpagina en meld aan met GitHub.
+2. Open **Pagina's → Testpagina** en verander de tekst in een herkenbare testzin.
+3. Publiceer in Decap.
+4. Controleer de nieuwe commit met `content/page.json` op `main`.
+5. Wacht tot de bijbehorende validate- en deploy-jobs groen zijn.
+6. Herlaad de bezoekerspagina en controleer de testzin.
+7. Meld af, meld opnieuw aan en controleer dezelfde opgeslagen tekst.
+8. Controleer dat een account zonder schrijfrecht geen toegang krijgt.
+
+Na maximaal acht uur verloopt de GitHub App-gebruikerstoken: meld dan opnieuw
+aan. De Worker geeft geen refresh token aan de CMS-browser.
+Pas na deze tests en de resterende beoordeling van de Decap-browsercode
+zetten we het eerder gemaakte dorpsontwerp erin.
+
+## Lokaal bekijken
+
+Installeer Node 22 of nieuwer. Open een terminal in deze projectmap:
 
 ```sh
 npm run preview
 ```
 
-Open http://localhost:8080/. Je hoeft **geen npm install** uit te voeren.
-De bron voor deze ene pagina staat in `content/page.json`. Handmatig aanpassen
-en daarna `npm run build` uitvoeren werkt ook zonder externe packages.
+Open http://localhost:8080/. Er is geen npm-installatie nodig: de lokale
+bouwketen heeft geen externe packages. Inhoud staat in `content/page.json`.
+Voor een handmatige wijziging: bewerk dat bestand en voer `npm run build` uit.
+De echte login is gebonden aan het HTTPS-testdomein, niet aan localhost.
 
-`/admin/` toont voorlopig setupinformatie. Er is geen nep-login en geen
-browseropslag die als echte CMS-opslag wordt voorgesteld.
+## Beveiligingsgrenzen
 
-## Werkelijke CMS-test instellen
+HTML-invoer wordt als gewone tekst weergegeven. Er is geen richtextwidget,
+Markdown-editor, CMS-preview of lokale Git-proxy geïnstalleerd.
+De vaste Decap-browserbundle wordt extern via HTTPS geladen; dat is geen
+herbouw of bewijs dat eerdere npm-advisories opgelost zijn.
+De Worker gebruikt state, PKCE, getekende HttpOnly-cookie, vaste origins en
+controles op de exacte App, installatie, repository en schrijfrechten.
+De 13 lokale tests gebruiken voor GitHub gesimuleerde antwoorden.
 
-**Huidige fase:** de domeinkoppeling is uitgesteld. De workflow in dit pakket
-bouwt en test alleen. Hij maakt een downloadbaar artifact `minimal-cms-base`
-en publiceert geen website. Er zijn geen Pages-schrijf- of deployrechten.
-Repository en toekomstig websiteadres staan ingesteld op `xand3rr/drkwdtest`
-en `https://drkwdtest.xanderfaase.nl/`; de loginserver is nog niet ingesteld.
-Upload uitsluitend naar die nieuwe repository. De bestaande website-repository
-`xand3rr.github.io` wordt niet gebruikt.
-
-Voor deze eerste GitHub-build kun je de basis direct uploaden zonder een
-loginserver in te stellen. Stap 3 en het configure-commando voor authUrl hieronder
-horen bij de latere online CMS-test. Gebruik daarvoor repository
-`xand3rr/drkwdtest` en siteUrl `https://drkwdtest.xanderfaase.nl/`.
-
-1. Maak een aparte openbare GitHub-testrepository met branch `main`. Begin met
-   een README zodat die branch bestaat. Gebruik uitsluitend testinhoud.
-2. Kies **Settings → Pages → Source → GitHub Actions** in die repository.
-3. Maak de loginserver en GitHub OAuth-app volgens `docs/LOGIN.md`.
-4. Stel jouw repository en loginserver in:
-
-```sh
-npm run configure -- --repository jouwnaam/kwadendamme-basis --auth-url https://jouw-loginserver.workers.dev
-npm run build
-npm test
-```
-
-5. Upload de INHOUD van deze projectmap naar de repositoryroot, inclusief
-   `.github/workflows/pages.yml`. `_site` hoeft niet mee. Er zijn geen secrets
-   in deze projectmap; die horen op de loginserver.
-6. Open **Actions → Build and test minimal CMS base**. De tests en build moeten
-   groen worden. Onder **Artifacts** vind je de gebouwde `minimal-cms-base`.
-   Voor echte online login moeten we later het subdomein en de loginserver
-   instellen en publicatie toevoegen; deze workflow doet dat nog niet.
-
-De loginserver accepteert uitsluitend de ingestelde HTTPS-website. Een echte
-GitHub-login vanaf `localhost` hoort daarom niet bij deze test. Er is bewust
-geen lokale Decap-proxy toegevoegd.
-
-## De test die we vóór het ontwerp willen zien slagen
-
-Deze volledige test kan pas na het later instellen van hosting en login.
-
-1. Open `/admin/` en log werkelijk in met GitHub.
-2. Open de **Testpagina** en verander de tekst in een herkenbare testzin.
-3. Kies publiceren/opslaan in Decap.
-4. Controleer dat `content/page.json` op `main` de wijziging bevat.
-5. Wacht tot GitHub Actions de nieuwe versie heeft gepubliceerd.
-6. Herlaad de bezoekerspagina en controleer de testzin.
-7. Meld af, meld opnieuw aan en controleer dat de tekst bewaard is.
-8. Controleer dat een account zonder schrijfrecht geen toegang krijgt.
-
-Pas na die controles én de beoordeling in `BEVEILIGING.md` kan de basis
-worden vrijgegeven en zetten we het eerder gemaakte dorpsontwerp erin.
-
-## Wat deze opzet anders doet
-
-- Geen Eleventy-installatie of watcher; één kleine Node-builder verwerkt JSON.
-- Geen decap-server, simple-git of @hapi/joi in de website/toolketen.
-- Alleen titel en gewone tekst; geen Markdown/richtext-editor of CMS-preview.
-- Decap-browsercode wordt geladen van de vaste HTTPS-URL voor versie 3.16.3.
-  Dat volgt de officiële installatievorm. Het verandert de Decap-code niet.
-- Inhoud wordt als tekst geescaped in HTML; ingevoerde HTML wordt niet uitgevoerd.
-- De loginworker gebruikt vaste origins/repository, state, PKCE en ondertekende
-  cookies. De echte GitHub/Cloudflare-koppeling moet nog worden beproefd.
-
-Geen npm-afhankelijkheden betekent alleen dat deze lokale bouwketen geen npm-
-dependencyboom heeft. Het is geen bewijs dat de extern geladen CMS-code veilig is.
-
-## Officiële documentatie
-
-- https://decapcms.org/docs/install-decap-cms/
+Bronnen:
+- https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 - https://decapcms.org/docs/github-backend/
-- https://decapcms.org/docs/manual-initialization/
-- https://decapcms.org/docs/widgets/text/
+- https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app

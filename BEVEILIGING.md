@@ -34,11 +34,17 @@ eigen geverifieerde kopie of gecontroleerde herbouw blijft een keuze vóór live
 
 ## Login en gegevens
 
-- De OAuth-worker bevat geen pakketafhankelijkheden en gebruikt een vaste
+- De GitHub App-loginworker bevat geen pakketafhankelijkheden en gebruikt een vaste
   HTTPS-origin en repository, getekende cookie, state en PKCE.
 - De tests simuleren GitHub; echte login/popups/opslag zijn nog niet getest.
-- `public_repo` is een brede GitHub-accountscope, niet beperkt tot één repository.
-  Gebruik voor deze basistest een account met alleen de benodigde testrechten.
+- De worker vraagt geen brede OAuth-scopes en accepteert alleen een tijdelijk
+  GitHub App-gebruikerstoken. Hij controleert App ID, Contents-schrijfrecht,
+  installatie-eigenaar en uitsluitend de ingestelde testrepository.
+- De App moet uitsluitend op `xand3rr/drkwdtest` geïnstalleerd zijn. Een
+  installatie op alle of meerdere repositories wordt geweigerd. GitHub
+  handhaaft de App-rechten op API-aanroepen; de tests simuleren dit.
+- Na maximaal acht uur meld je opnieuw aan. Refresh tokens worden niet
+  opgeslagen door de worker of naar de browser gestuurd.
 - Geheimen worden alleen als secrets op de loginserver ingesteld, nooit in Git.
 - GitHub Pages en de openbare testrepository zijn publiek. `noindex` is geen
   toegangsbeveiliging. Gebruik geen persoonsgegevens of vertrouwelijke inhoud.

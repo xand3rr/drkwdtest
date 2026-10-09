@@ -1,18 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import { handle } from './worker.mjs';
+import worker from './worker.mjs';
+const handle = worker.fetch;
 
 const ENV = {
   SITE_ORIGIN: 'https://dorpsraad.example',
   WORKER_ORIGIN: 'https://login.example',
   GITHUB_REPO: 'dorpsraad/kwadendamme',
-  PRIVATE_REPO: 'false',
+  GITHUB_APP_ID: '5252240',
   GITHUB_CLIENT_ID: 'test-client',
   GITHUB_CLIENT_SECRET: 'test-secret',
   SESSION_SECRET: 'only-a-test-key-with-at-least-32-characters'
 };
-const TOKEN = 'gho_testtokenforlocaltests123456789';
+const TOKEN = 'ghu_testtokenforlocaltests123456789';
 const NOW = 1781000000000;
 const start = (extra = '', env = ENV) => handle(new Request(`${env.WORKER_ORIGIN}/auth?provider=github&site_id=dorpsraad.example${extra}`), env, { now: () => NOW });
 
@@ -26,22 +27,23 @@ function callback(s, state = s.state) {
   return new Request(`https://login.example/callback?code=samplecode&state=${state}`, { headers: { Cookie: s.cookie } });
 }
 
-function github(push = true, calls = []) {
+function github(push = true, calls = [], changes = {}) {
   return async (url, options) => {
     calls.push({ url, options });
-    if (url === 'https://github.com/login/oauth/access_token') return Response.json({ access_token: TOKEN });
-    if (url === 'https://api.github.com/repos/dorpsraad/kwadendamme') return Response.json({ full_name: ENV.GITHUB_REPO, permissions: { push } });
+    if (url === 'https://github.com/login/oauth/access_token') return Response.json({ access_token: TOKEN, expires_in: 28800, ...changes.token });
+    if (url.startsWith('https://api.github.com/user/installations?')) return Response.json(changes.installations || { total_count: 1, installations: [{ id: 123, app_id: Number(ENV.GITHUB_APP_ID), account: { login: 'dorpsraad' }, repository_selection: 'selected', permissions: { contents: 'write' } }] });
+    if (url === 'https://api.github.com/user/installations/123/repositories?per_page=100') return Response.json(changes.repositories || { total_count: 1, repositories: [{ full_name: ENV.GITHUB_REPO, permissions: { push } }] });
     throw new Error('Unexpected request');
   };
 }
 
-test('auth binds a secure cookie, state, PKCE, fixed callback and public scope', async () => {
+test('auth binds cookie, state, PKCE and fixed callback without broad OAuth scopes', async () => {
   const response = await start('&repo=attacker/other&redirect_uri=https://attacker.example&scope=repo');
   assert.equal(response.status, 302);
   const location = new URL(response.headers.get('Location'));
   assert.equal(location.origin, 'https://github.com');
   assert.equal(location.searchParams.get('redirect_uri'), 'https://login.example/callback');
-  assert.equal(location.searchParams.get('scope'), 'public_repo');
+  assert.equal(location.searchParams.has('scope'), false);
   assert.equal(location.searchParams.get('code_challenge_method'), 'S256');
   assert.match(location.searchParams.get('code_challenge'), /^[A-Za-z0-9_-]{43}$/);
   assert.match(response.headers.get('Set-Cookie'), /HttpOnly; Secure; SameSite=Lax/);
@@ -55,6 +57,7 @@ test('other site/provider/origin and bad configuration are refused', async () =>
   assert.equal((await handle(new Request('https://login.example/auth?provider=github&site_id=dorpsraad.example', { headers: { Origin: 'https://attacker.example' } }), ENV)).status, 403);
   assert.equal((await handle(new Request('https://attacker.example/auth?provider=github&site_id=dorpsraad.example'), ENV)).status, 400);
   assert.equal((await handle(new Request('https://login.example/'), { ...ENV, SESSION_SECRET: 'short' })).status, 503);
+  assert.equal((await handle(new Request('https://login.example/'), { ...ENV, GITHUB_APP_ID: '' })).status, 503);
   assert.equal((await handle(new Request('https://login.example/', { method: 'POST' }), ENV)).status, 405);
 });
 
@@ -84,10 +87,11 @@ test('successful callback checks fixed repository and implements exact Decap han
   assert.equal(response.status, 200);
   assert.match(response.headers.get('Content-Security-Policy'), /script-src 'nonce-/);
   assert.match(response.headers.get('Set-Cookie'), /Max-Age=0/);
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
   assert.equal(calls[0].options.body.get('redirect_uri'), 'https://login.example/callback');
   assert.match(calls[0].options.body.get('code_verifier'), /^[A-Za-z0-9_-]{43}$/);
   assert.equal(calls[1].options.headers.Authorization, `Bearer ${TOKEN}`);
+  assert.equal(calls[2].url, 'https://api.github.com/user/installations/123/repositories?per_page=100');
   const messages = [];
   const opener = { postMessage: (...args) => messages.push(args) };
   let receive;
@@ -102,6 +106,48 @@ test('successful callback checks fixed repository and implements exact Decap han
   receive({ source: opener, origin: ENV.SITE_ORIGIN, data: 'authorizing:github' });
   assert.deepEqual(messages[1], [`authorization:github:success:${JSON.stringify({ token: TOKEN, provider: 'github' })}`, ENV.SITE_ORIGIN]);
   assert.equal(closed, true);
+});
+
+test('wrong app, broad installation, read-only app, wrong or extra repositories fail closed', async () => {
+  const s = await session();
+  const installation = { id: 123, app_id: Number(ENV.GITHUB_APP_ID), account: { login: 'dorpsraad' }, repository_selection: 'selected', permissions: { contents: 'write' } };
+  const fixtures = [
+    { installations: { total_count: 0, installations: [] } },
+    { installations: { total_count: 1, installations: [{ ...installation, app_id: 999 }] } },
+    { installations: { total_count: 1, installations: [{ ...installation, repository_selection: 'all' }] } },
+    { installations: { total_count: 1, installations: [{ ...installation, permissions: { contents: 'read' } }] } },
+    { repositories: { total_count: 1, repositories: [{ full_name: 'dorpsraad/existing-site', permissions: { push: true } }] } },
+    { repositories: { total_count: 2, repositories: [{ full_name: ENV.GITHUB_REPO, permissions: { push: true } }, { full_name: 'dorpsraad/existing-site', permissions: { push: true } }] } }
+  ];
+  for (const changes of fixtures) {
+    const response = await handle(callback(s), ENV, { fetch: github(true, [], changes), now: () => NOW });
+    const html = await response.text();
+    assert.match(html, /authorization:github:error:/);
+    assert.ok(!html.includes(TOKEN));
+  }
+});
+
+test('non-expiring tokens and OAuth App tokens are refused', async () => {
+  const s = await session();
+  for (const token of [{ expires_in: undefined }, { expires_in: 999999 }, { access_token: 'gho_testtokenforlocaltests123456789' }]) {
+    const calls = [];
+    const response = await handle(callback(s), ENV, { fetch: github(true, calls, { token }), now: () => NOW });
+    const html = await response.text();
+    assert.match(html, /authorization:github:error:/);
+    assert.ok(!html.includes(TOKEN));
+    assert.equal(calls.length, 1);
+  }
+});
+
+test('the configured app can be found after the first installation page', async () => {
+  const s = await session();
+  const mocked = github();
+  const fetcher = async (url, options) => {
+    if (url === 'https://api.github.com/user/installations?per_page=100&page=1') return Response.json({ total_count: 101, installations: Array.from({ length: 100 }, (_, i) => ({ app_id: i + 1 })) });
+    return mocked(url, options);
+  };
+  const response = await handle(callback(s), ENV, { fetch: fetcher, now: () => NOW });
+  assert.match(await response.text(), /authorization:github:success:/);
 });
 
 test('read-only account and GitHub errors never return token', async () => {

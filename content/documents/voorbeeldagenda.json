@@ -1,0 +1,9 @@
+{
+  "title": "Voorbeeldagenda dorpsraadvergadering",
+  "intro": "Een voorbeelddocument om agenda’s te bekijken en te downloaden.",
+  "body": "Dit is een agenda voor de testomgeving. Er is geen werkelijke vergadering aangekondigd.",
+  "file": "/assets/voorbeeldagenda.pdf",
+  "meeting": "voorbeeldvergadering",
+  "draft": false,
+  "example": true
+}

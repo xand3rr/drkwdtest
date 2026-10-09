@@ -4,7 +4,7 @@ import path from 'node:path';
 import { ROOT, hosting } from '../lib/basis.mjs';
 const root=path.join(ROOT,'_site');
 const {basePath}=hosting(JSON.parse(await readFile(path.join(ROOT,'config/hosting.json'),'utf8')),process.env);
-const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.yml':'application/json','.png':'image/png','.pdf':'application/pdf','.txt':'text/plain; charset=utf-8'};
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.json':'application/json','.yml':'application/json','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.gif':'image/gif','.pdf':'application/pdf','.txt':'text/plain; charset=utf-8'};
 const server=http.createServer(async(req,res)=>{
   if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return;}
   try {

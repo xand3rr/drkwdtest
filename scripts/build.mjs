@@ -1,15 +1,32 @@
-import { readFile, mkdir, rm, cp, writeFile } from 'node:fs/promises';
+import { mkdir, rm, cp, writeFile, stat } from 'node:fs/promises';
 import path from 'node:path';
-import { ROOT, hosting, cmsConfig, render, CMS_VERSION, CMS_SCRIPT } from '../lib/basis.mjs';
-const read = async file => JSON.parse(await readFile(path.join(ROOT, file), 'utf8'));
-const h = hosting(await read('config/hosting.json'), process.env);
+import { ROOT, CMS_VERSION, CMS_SCRIPT } from '../lib/basis.mjs';
+import { loadContent } from '../lib/content.mjs';
+import { cmsConfig } from '../lib/cms-config.mjs';
+import { renderPage } from '../lib/render.mjs';
+
+const content = await loadContent();
 const out = path.join(ROOT, '_site');
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-await cp(path.join(ROOT, 'public'), out, { recursive: true });
-await writeFile(path.join(out, 'index.html'), render(await read('content/page.json'), h));
-await writeFile(path.join(out, 'admin/config.yml'), JSON.stringify(cmsConfig(h), null, 2));
-await writeFile(path.join(out, 'admin/settings.json'), JSON.stringify({ configured: h.configured, version: CMS_VERSION, script: CMS_SCRIPT }));
+const publicRoot = path.join(ROOT, 'public');
+await cp(publicRoot, out, { recursive: true, filter: async source => {
+  const relative = path.relative(publicRoot, source);
+  if (!relative.startsWith('uploads' + path.sep)) return true;
+  if ((await stat(source)).isDirectory()) return true;
+  // Uploaded HTML, SVG and scripts are never copied to the public website.
+  return /\.(?:png|jpe?g|webp|gif|pdf)$/i.test(source);
+} });
+for (const page of content.pages) {
+  const target = page.path.endsWith('/') ? page.path.slice(1) + 'index.html' : page.path.slice(1);
+  const file = path.join(out, target);
+  await mkdir(path.dirname(file), { recursive: true });
+  await writeFile(file, renderPage(page, content));
+}
+await writeFile(path.join(out, 'admin/config.yml'), JSON.stringify(cmsConfig(content), null, 2));
+await writeFile(path.join(out, 'admin/settings.json'), JSON.stringify({ configured: content.hosting.configured, version: CMS_VERSION, script: CMS_SCRIPT }));
 await writeFile(path.join(out, '.nojekyll'), '');
-await writeFile(path.join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
-console.log(`Eén tekstpagina gebouwd. GitHub-login ${h.configured ? 'ingesteld; nog echt testen' : 'nog niet ingesteld'}.`);
+await writeFile(path.join(out, 'robots.txt'), content.site.testMode ? 'User-agent: *\nDisallow: /\n' : 'User-agent: *\nDisallow: /admin/\n');
+// Validate every built route and asset before GitHub Pages can publish it.
+await import('./check-site.mjs');
+console.log(`${content.pages.length} dorpspagina’s gebouwd met de bestaande Decap ${CMS_VERSION}-loginconfiguratie.`);

@@ -1,0 +1,10 @@
+{
+  "title": "Dorpsraad Kwadendamme",
+  "tagline": "Betrokken bij ons dorp.",
+  "heroImage": "/assets/dorp.png",
+  "heroAlt": "Sfeerbeeld van een dorp in het Zeeuwse landschap",
+  "heroCaption": "Sfeerbeeld · voorbeeldfoto",
+  "contactEmail": "",
+  "formEndpoint": "",
+  "testMode": true
+}

@@ -1,0 +1,6 @@
+{
+  "title": "Privacy in dit concept",
+  "intro": "Zo gaan we om met gegevens tijdens het testen.",
+  "body": "# Testgegevens\n\nDe formulieren vragen om naam, e-mailadres en bericht. Gebruik tijdens het testen verzonnen gegevens. In de teststand worden berichten uitsluitend in de testinbox van deze browser opgeslagen en niet gemaild.\n\n# Lokale opslag\n\nTestberichten zijn alleen op dit apparaat in deze browser beschikbaar. Wie deze browser gebruikt, kan ze bekijken. Het verwijderen van browsergegevens wist ook de testinbox.\n\n# Publicatie en hosting\n\nDe publieke website bestaat uit statische pagina’s. GitHub Pages verwerkt bezoekgegevens volgens de privacyvoorwaarden van GitHub. Inhoud die via het CMS wordt gepubliceerd komt in de GitHub-repository te staan.\n\n# Voor de livegang\n\nDe dorpsraad vult hier de verantwoordelijke, contactgegevens, bewaartermijnen, gekozen formulierdienst en afspraken over persoonsgegevens in. De teststand wordt uitgezet. Persoonlijke berichten worden niet in de openbare repository opgeslagen.",
+  "example": true
+}

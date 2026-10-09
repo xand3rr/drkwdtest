@@ -1,0 +1,24 @@
+Kwadendamme — minimale Decap-validatiebasis, 9 oktober 2026
+
+HUIDIGE FASE
+- Domeininstelling uitgesteld. GitHub Actions test/bouwt alleen en bewaart een
+  downloadbaar artifact. Geen publicatiejob en geen Pages-schrijf/deployrechten.
+- Alleen de nieuwe testrepository xand3rr/drkwdtest is ingesteld. Het toekomstige
+  websiteadres is drkwdtest.xanderfaase.nl; loginserver nog niet ingesteld.
+
+UITGEVOERD
+- Eén tekstpagina gebouwd met Node en eigen escaping, zonder externe packages.
+- Vier basistests: content-rendering en veilige HTML-weergave, GitHub Pages-paden,
+  minimale JSON/CMS-configuratie en weigering van ongeldige content/configuratie.
+- Zes bestaande OAuth-tests met gesimuleerde GitHub-antwoorden.
+- Lokale HTTP-controle van homepage, admin, script en gegenereerde configuratie.
+
+NIET ALS GESLAAGD GEMARKEERD
+- Echte CMS-browserbediening, GitHub-login, opslaan, commit en Pages-publicatie.
+- Beveiligingsbeoordeling/audit van de complete extern geladen Decap-bundle.
+- Of de geconfigureerde tekstvelden alle kwetsbare browsercodepaden vermijden.
+- Visuele/browsercontrole; de opzet heeft nog geen dorpsontwerp.
+
+Deze basis heeft geen npm-dependencies. Dat zegt niets over de veiligheid van
+de extern geladen Decap-browsercode. Zie BEVEILIGING.md. De oude pakketten en
+hun vormgeving zijn niet gewijzigd door het maken van deze aparte basis.

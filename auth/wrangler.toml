@@ -1,0 +1,14 @@
+name = "kwadendamme-decap-login"
+main = "worker.mjs"
+compatibility_date = "2026-10-01"
+workers_dev = true
+
+[vars]
+# Vul deze drie waarden zelf in. Gebruik alleen de oorsprong, zonder pad.
+SITE_ORIGIN = "https://JOUW-GITHUB-NAAM.github.io"
+WORKER_ORIGIN = "https://kwadendamme-decap-login.JOUW-ACCOUNT.workers.dev"
+GITHUB_REPO = "JOUW-GITHUB-NAAM/dorpsraad-kwadendamme"
+PRIVATE_REPO = "false"
+
+# Stel GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET en SESSION_SECRET als
+# Cloudflare secrets in. Voeg ze nooit aan dit bestand of GitHub toe.

@@ -1,0 +1,15 @@
+import { readFile, mkdir, rm, cp, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { ROOT, hosting, cmsConfig, render, CMS_VERSION, CMS_SCRIPT } from '../lib/basis.mjs';
+const read = async file => JSON.parse(await readFile(path.join(ROOT, file), 'utf8'));
+const h = hosting(await read('config/hosting.json'), process.env);
+const out = path.join(ROOT, '_site');
+await rm(out, { recursive: true, force: true });
+await mkdir(out, { recursive: true });
+await cp(path.join(ROOT, 'public'), out, { recursive: true });
+await writeFile(path.join(out, 'index.html'), render(await read('content/page.json'), h));
+await writeFile(path.join(out, 'admin/config.yml'), JSON.stringify(cmsConfig(h), null, 2));
+await writeFile(path.join(out, 'admin/settings.json'), JSON.stringify({ configured: h.configured, version: CMS_VERSION, script: CMS_SCRIPT }));
+await writeFile(path.join(out, '.nojekyll'), '');
+await writeFile(path.join(out, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+console.log(`Eén tekstpagina gebouwd. GitHub-login ${h.configured ? 'ingesteld; nog echt testen' : 'nog niet ingesteld'}.`);

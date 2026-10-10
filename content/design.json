@@ -1,0 +1,166 @@
+{
+  "brand": {
+    "eyebrow": "Dorpsraad",
+    "name": "Kwadendamme",
+    "logo": "/assets/vlag.jpg",
+    "logoAlt": "Vlag van Kwadendamme",
+    "favicon": "/assets/vlag.jpg"
+  },
+  "navigation": [
+    {
+      "label": "Home",
+      "href": "/",
+      "enabled": true
+    },
+    {
+      "label": "Dorpsraad",
+      "href": "/dorpsraad/",
+      "enabled": true
+    },
+    {
+      "label": "Nieuws",
+      "href": "/nieuws/",
+      "enabled": true
+    },
+    {
+      "label": "Onderwerpen",
+      "href": "/onderwerpen/",
+      "enabled": true
+    },
+    {
+      "label": "Vergaderingen",
+      "href": "/vergaderingen/",
+      "enabled": true
+    },
+    {
+      "label": "Contact",
+      "href": "/contact/",
+      "enabled": true
+    }
+  ],
+  "footerLinks": [
+    {
+      "label": "Contact",
+      "href": "/contact/",
+      "enabled": true
+    },
+    {
+      "label": "Documenten",
+      "href": "/documenten/",
+      "enabled": true
+    },
+    {
+      "label": "Privacy",
+      "href": "/privacy/",
+      "enabled": true
+    },
+    {
+      "label": "Beheer",
+      "href": "/admin/",
+      "enabled": true
+    }
+  ],
+  "sidebar": [
+    {
+      "title": "Doe mee",
+      "text": "Een vraag, een idee of een aandachtspunt voor het dorp?",
+      "links": [
+        {
+          "label": "Denk mee",
+          "href": "/meedenken/",
+          "style": "outline"
+        }
+      ]
+    },
+    {
+      "title": "Blijf betrokken",
+      "text": "",
+      "links": [
+        {
+          "label": "Bekijk vergaderingen",
+          "href": "/vergaderingen/",
+          "style": "outline"
+        },
+        {
+          "label": "Lees de documenten",
+          "href": "/documenten/",
+          "style": "outline"
+        },
+        {
+          "label": "Neem contact op",
+          "href": "/contact/",
+          "style": "outline"
+        }
+      ]
+    }
+  ],
+  "homeSections": [
+    {
+      "type": "hero",
+      "enabled": true,
+      "eyebrow": "Betrokken bij ons dorp",
+      "title": "",
+      "intro": "",
+      "text": "",
+      "image": "",
+      "imageAlt": "",
+      "caption": "",
+      "buttons": [
+        {
+          "label": "Wat speelt er?",
+          "href": "/nieuws/",
+          "style": "solid"
+        },
+        {
+          "label": "Denk mee",
+          "href": "/meedenken/",
+          "style": "outline"
+        }
+      ]
+    },
+    {
+      "type": "news",
+      "enabled": true,
+      "eyebrow": "Nieuws & verhalen",
+      "title": "Wat speelt er in ons dorp?",
+      "intro": "",
+      "limit": 3,
+      "featuredOnly": false,
+      "buttons": [
+        {
+          "label": "Alle nieuwsberichten",
+          "href": "/nieuws/",
+          "style": "outline"
+        }
+      ]
+    },
+    {
+      "type": "callouts",
+      "enabled": true,
+      "items": [
+        {
+          "eyebrow": "Vergaderingen",
+          "title": "Schuif aan bij de dorpsraad",
+          "text": "Bekijk de agenda, lees de stukken en praat mee.",
+          "button": {
+            "label": "Vergaderingen bekijken",
+            "href": "/vergaderingen/",
+            "style": "solid"
+          }
+        },
+        {
+          "eyebrow": "Jouw dorp",
+          "title": "Een vraag of een idee?",
+          "text": "We horen graag wat er bij jou leeft.",
+          "button": {
+            "label": "Denk mee",
+            "href": "/meedenken/",
+            "style": "outline"
+          }
+        }
+      ]
+    }
+  ],
+  "newsOrder": "date",
+  "newsReadMore": "Lees het bericht"
+}

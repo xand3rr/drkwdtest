@@ -1,0 +1,14 @@
+{
+  "endpoint": "https://kwadendamme-formulieren.xanderfaase-cloudflare.workers.dev/submit",
+  "turnstileSiteKey": "0x4AAAAAAFSmQf4b9cy9HPxm",
+  "mode": "local",
+  "texts": {
+    "nameLabel": "Naam",
+    "emailLabel": "E-mailadres",
+    "subjectLabel": "Onderwerp",
+    "messageLabel": "Jouw bericht",
+    "ideaLabel": "Jouw idee",
+    "submitLabel": "Verstuur bericht",
+    "consentLabel": "Ik heb de privacyinformatie gelezen en ga akkoord met verwerking om mijn bericht te beantwoorden."
+  }
+}

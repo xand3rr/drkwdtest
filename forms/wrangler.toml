@@ -1,0 +1,22 @@
+name = "kwadendamme-formulieren"
+main = "worker.mjs"
+compatibility_date = "2026-10-09"
+workers_dev = true
+
+[vars]
+SITE_ORIGIN = "https://drkwdtest.xanderfaase.nl"
+MODE = "test"
+# Live: set verified MAIL_FROM and fixed MAIL_TO as Worker variables.
+# Secrets: TURNSTILE_SECRET_KEY, ANTISPAM_SECRET; live also RESEND_API_KEY.
+
+[[durable_objects.bindings]]
+name = "FORM_GUARD"
+class_name = "FormGuard"
+
+# Supported legacy lifecycle format; keep history unchanged after first deploy.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["FormGuard"]
+
+[observability]
+enabled = true

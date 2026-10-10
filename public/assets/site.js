@@ -1,5 +1,8 @@
 import './navigation.js';
 import {readInbox,saveMessage,deleteMessage} from './inbox.js';
+import {initRemoteForms} from './forms.js';
+
+initRemoteForms();
 
 function feedback(el,message,error=false) {if(!el)return;el.className='notice '+(error?'notice-error':'notice-success');el.textContent=message;}
 for(const form of document.querySelectorAll('[data-test-form]')) {

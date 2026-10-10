@@ -10,7 +10,8 @@ for(const file of pages) {
   const html=await readFile(file,'utf8');
   assert(!html.includes('playground.wordpress.net'),`Playground dependency in ${file}`);
   if(!file.includes('/admin/'))assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,`Exactly one page title in ${file}`);
-  for(const m of html.matchAll(/\b(?:href|src|action)="([^"]+)"/g)) {
+  // Match actual HTML attributes; data-action is a form identifier, not a URL.
+  for(const m of html.matchAll(/\s(?:href|src|action)="([^"]+)"/g)) {
     let url=m[1].replaceAll('&amp;','&');
     if(/^(?:https?:|mailto:|data:|#)/i.test(url))continue;
     let target;

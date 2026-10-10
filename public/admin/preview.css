@@ -1,0 +1,35 @@
+/* Same village palette, kept separate from the CMS controls. */
+html { background: #f8f6f0; color: #233c31; }
+body { margin: 0; font: 16px/1.65 system-ui, sans-serif; overflow-wrap: anywhere; }
+.village-preview { max-width: 1100px; margin: auto; padding: 28px; }
+h1, h2, h3, h4, h5, h6 { font-family: Georgia, serif; color: #244c3b; line-height: 1.18; }
+h1 { font-size: clamp(30px, 5vw, 54px); }
+h2 { font-size: clamp(26px, 4vw, 36px); }
+h3 { font-size: 25px; }
+a { color: #244c3b; text-underline-offset: .2em; }
+.preview-notice, .preview-placeholder, .preview-draft { border-left: 4px solid #e3b874; background: #fff9ec; padding: 12px 16px; font-size: 13px; }
+.preview-draft { font-weight: 700; }
+.preview-intro { font-size: 21px; max-width: 740px; }
+.preview-eyebrow { color: #50735b; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; }
+.preview-meta { color: #586a5f; font-size: 14px; }
+.preview-section { padding: 28px 0; border-top: 1px solid #dedfd3; }
+.preview-section:first-of-type { margin-top: 28px; }
+.preview-figure { margin: 24px 0; }
+.preview-figure img { display: block; width: 100%; max-height: 500px; object-fit: cover; border-radius: 18px; }
+figcaption { color: #586a5f; font-size: 13px; padding: 8px 0; }
+.preview-buttons, .preview-menu, .preview-footer { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.preview-button { display: inline-block; border: 1px solid #244c3b; color: #244c3b; border-radius: 8px; padding: 10px 15px; font-weight: 600; text-decoration: none; }
+.preview-button:hover, .preview-button:focus-visible { background: #e3eadb; }
+.preview-button-solid { background: #244c3b; color: #fff; }
+.preview-button-solid:hover, .preview-button-solid:focus-visible { color: #244c3b; }
+.preview-submenu { display: grid; gap: 8px; margin: 8px 0; padding-left: 15px; }
+.preview-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 20px; margin: 20px 0; }
+.preview-card { background: #fff; border: 1px solid #dedfd3; padding: 22px; border-radius: 16px; }
+.preview-card h3 { margin-top: 0; }
+.preview-brand { display: flex; gap: 15px; align-items: center; }
+.preview-brand .preview-figure { width: 65px; }
+.preview-brand img { border-radius: 3px; }
+.preview-brand strong { font-family: Georgia, serif; font-size: 28px; }
+.preview-footer { border-top: 1px solid #dedfd3; padding-top: 24px; margin-top: 28px; }
+.preview-footer p { flex-basis: 100%; }
+@media (max-width: 550px) { .village-preview { padding: 18px; } }

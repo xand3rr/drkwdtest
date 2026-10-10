@@ -318,3 +318,38 @@ button:disabled { cursor: default; opacity: .6; }
 .article-photo { margin-top: 28px; }
 .article-photo img { display: block; width: 100%; max-height: 460px; object-fit: cover; border-radius: var(--radius); }
 .hero-copy h1, .card h3, .brand-name { overflow-wrap: anywhere; }
+
+/* Editable blocks retain the approved palette and mobile proportions. */
+.header-inner > .main-nav { min-width: 0; }
+.main-nav > ul { flex-wrap: wrap; gap: 6px 22px; }
+.main-nav li { position: relative; }
+.main-nav > ul > li { display: flex; align-items: center; gap: 8px; }
+.nav-submenu summary { cursor: pointer; color: var(--forest); padding: 10px 5px; font-size: 13px; }
+.nav-submenu > ul { position: absolute; top: 100%; right: 0; z-index: 30; display: grid; gap: 2px; min-width: 210px; max-width: 300px; padding: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: 0 8px 20px #233c311a; }
+.nav-submenu a { overflow-wrap: anywhere; }
+.block-actions, .sidebar-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.sidebar-links { display: grid; justify-items: start; }
+.block-section { margin-block: 36px; }
+.block-section h2 { font-size: clamp(28px, 3vw, 38px); }
+.block-section .cards { grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); }
+.block-hero { grid-template-columns: 1fr; margin-block: 36px; }
+.block-hero .hero-copy { padding: 28px 0; }
+.block-hero .hero-photo, .block-hero .hero-photo > img { min-height: 300px; }
+.block-hero .hero-photo { border-radius: var(--radius); }
+.hero:not(:has(.hero-photo)) { grid-template-columns: 1fr; min-height: auto; }
+.hero:not(:has(.hero-photo)) .hero-copy { padding-right: 0; }
+.member-photo { height: 230px; object-fit: cover; }
+.article-photo figcaption { margin-top: 10px; color: var(--muted); font-size: 14px; }
+.form-honeypot { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.turnstile-container { min-height: 65px; max-width: 100%; }
+.form-retry { margin-top: 12px; }
+@media (max-width: 800px) {
+  .main-nav > ul > li { flex-wrap: wrap; }
+  .nav-submenu { flex: 0 0 auto; }
+  .nav-submenu > ul { position: static; min-width: 0; max-width: 100%; box-shadow: none; margin-bottom: 12px; }
+  .nav-submenu[open] { flex-basis: 100%; }
+}
+@media (max-width: 540px) {
+  .brand-name { max-width: min(200px, 48vw); }
+  .block-actions .button, .sidebar-links .button { font-size: 14px; }
+}

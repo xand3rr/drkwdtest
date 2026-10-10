@@ -13,6 +13,7 @@ async function fixture(run) {
   const root = await mkdtemp(path.join(ROOT, '.test-layout-'));
   try {
     for (const folder of ['config', 'content', 'public']) await cp(path.join(ROOT, folder), path.join(root, folder), { recursive: true });
+    await mkdir(path.join(root, 'public/uploads'), { recursive: true });
     // Editors may delete every example entry. Tests create their own fixtures.
     for (const folder of ['news', 'meetings', 'documents', 'projects']) await mkdir(path.join(root, 'content', folder), { recursive: true });
     await writeFile(path.join(root, 'content/news/welkom-op-de-dorpswebsite.json'), JSON.stringify({ title: 'Fixturebericht', body: 'Testtekst.', author: 'Testauteur', draft: false }));
@@ -41,12 +42,12 @@ test('CMS backend remains identical; every editable file and required field exis
   const config = cmsConfig(content);
   assert.deepEqual(config.backend, baselineConfig(content.hosting).backend);
   assert.equal(config.load_config_file, false);
-  assert.equal(config.editor.preview, false);
+  assert.equal(config.editor.preview, true);
   assert.equal(config.local_backend, undefined);
   assert.equal(config.collections.find(c => c.name === 'pages').files[0].file, 'content/page.json');
   assert(config.collections.find(c => c.name === 'news').fields.some(f => f.name === 'author' && f.required === true));
   for (const collection of config.collections) {
-    assert.equal(collection.editor.preview, false);
+    assert.equal(collection.editor.preview, true);
     for (const field of collection.fields || []) assert.notEqual(field.widget, 'markdown');
     for (const file of collection.files || []) {
       const data = await json(path.join(ROOT, file.file));

@@ -25,6 +25,14 @@
       document.body.append(script);
     });
     if (!window.CMS?.init) throw new Error('Decap heeft geen CMS-interface beschikbaar gemaakt.');
+    message.textContent = 'Voorbeeldweergave voorbereiden…';
+    let previewContent = {};
+    try {
+      const previewResponse = await fetch('preview-content.json', { cache: 'no-store' });
+      if (previewResponse.ok) previewContent = await previewResponse.json();
+    } catch { /* Editing and safe structural previews also work without the published snapshot. */ }
+    const { registerPreviews } = await import('./preview.js');
+    registerPreviews(window.CMS, { config, basePath: settings.basePath || '', siteOrigin: window.location.origin, content: previewContent });
     window.CMS.init({ config });
     status.remove();
   } catch (error) { message.textContent = error.message || 'Het beheer kon niet worden geopend.'; }

@@ -2,5 +2,29 @@
   "title": "Over de dorpsraad",
   "intro": "Betrokken bij ons dorp. Een plek voor vragen, ideeën en de onderwerpen die ons samen aangaan.",
   "body": "# Betrokken bij Kwadendamme\n\nDe dorpsraad is een aanspreekpunt voor vragen en ideeën over het dorp. Hier kun je volgen welke onderwerpen aan bod komen en hoe je kunt meedenken.\n\n# Onze werkwijze\n\nWe luisteren naar bewoners, bespreken onderwerpen tijdens vergaderingen en delen de voortgang via nieuws en verslagen.\n\n# De leden\n\nDe actuele namen, rollen en foto’s van de dorpsraadleden worden hier toegevoegd zodra deze beschikbaar zijn.",
-  "example": true
+  "example": true,
+  "showSidebar": false,
+  "sections": [
+    {
+      "type": "text",
+      "enabled": true,
+      "buttons": [
+        {
+          "style": "solid",
+          "label": "TEST",
+          "href": "/contact/"
+        }
+      ],
+      "eyebrow": "Test",
+      "title": "Test",
+      "intro": "Test",
+      "text": "Teststaweafdawqed"
+    },
+    {
+      "type": "members",
+      "enabled": true,
+      "limit": 12,
+      "buttons": []
+    }
+  ]
 }

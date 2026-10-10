@@ -1,0 +1,38 @@
+name: Refresh scheduled content
+
+on:
+  schedule:
+    - cron: '17,47 * * * *'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: drkwdtest-scheduled-dispatch
+  cancel-in-progress: false
+
+jobs:
+  request-publication:
+    if: github.repository == 'xand3rr/drkwdtest' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      actions: write
+    steps:
+      - name: Request existing tested publication workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dispatch_status=$(curl --fail --silent --show-error --max-time 30 \
+            --output /dev/null --write-out '%{http_code}' \
+            --request POST \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'X-GitHub-Api-Version: 2026-03-10' \
+            --header 'Content-Type: application/json' \
+            --data '{"ref":"main"}' \
+            'https://api.github.com/repos/xand3rr/drkwdtest/actions/workflows/pages.yml/dispatches')
+          if [ "$dispatch_status" != '204' ]; then
+            echo "Unexpected workflow dispatch status: $dispatch_status"
+            exit 1
+          fi

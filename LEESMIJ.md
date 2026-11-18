@@ -9,7 +9,7 @@ Zie BEVEILIGING.md en VALIDATIE.txt.
 
 - Repository: `xand3rr/drkwdtest`, branch `main`.
 - Website: `https://drkwdtest.xanderfaase.nl/`.
-- Beheer: `https://drkwdtest.xanderfaase.nl/admin/`.
+- Beheer: `https://site.test.dorpsraadkwadendamme.nl/admin/`.
 - Loginworker: `https://kwadendamme-decap-login.xanderfaase-cloudflare.workers.dev`.
 - GitHub App ID: `5252240`, uitsluitend geïnstalleerd op `drkwdtest`.
 
